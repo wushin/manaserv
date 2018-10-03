@@ -1,19 +1,15 @@
-FROM centos:7 as builder
+FROM fedora:29 as builder
 
-RUN yum update -y
-RUN yum install -y epel-release
-RUN yum install -y cmake gcc-c++ make libxml2-devel physfs-devel sqlite-devel \
+RUN dnf install -y cmake gcc-c++ make libxml2-devel physfs-devel sqlite-devel \
     lua-devel libsigc++20-devel
 
 ADD . /source
 WORKDIR /source
 
-RUN cmake .
-RUN make
+RUN cmake . -DCMAKE_INSTALL_PREFIX=/app
+RUN make install
 
-FROM centos:7
-RUN yum install -y epel-release
-RUN yum install -y libxml2 physfs sqlite lua libsigc++20
-COPY --from=builder /source/src/manaserv-account /app/
-COPY --from=builder /source/src/manaserv-game /app/
-COPY --from=builder /source/src/sql/sqlite/createTables.sql /app/
+FROM fedora:29
+RUN dnf update -y
+RUN dnf install -y libxml2 physfs sqlite lua libsigc++20
+COPY --from=builder /app/ /app/
